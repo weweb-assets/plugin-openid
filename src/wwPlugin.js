@@ -2,21 +2,19 @@
 import './components/Configuration/SettingsEdit.vue';
 import './components/Configuration/SettingsSummary.vue';
 /* wwEditor:end */
-import { Issuer } from 'openid-client';
+import { UserManager } from 'oidc-client';
 
 export default {
-    issuer: null,
     client: null,
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
     async onLoad(settings) {
-        /* wwFront:start */
-        await this.load(settings.publicData.discoverUrl);
-        /* wwFront:end */
-        /* wwEditor:start */
-        await this.load(settings.publicData.discoverUrl);
-        /* wwEditor:end */
+        await this.load(
+            settings.publicData.url,
+            settings.publicData.clientId,
+            settings.publicData.afterNotSignInPageId
+        );
     },
     /*=============================================m_ÔÔ_m=============================================\
         Auth API
@@ -24,21 +22,36 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(discoverUrl) {
+    async load(url, clientId, afterNotSignInPageId) {
         try {
-            if (!discoverUrl) return;
-            this.issuer = await Issuer.discover(discoverUrl);
-            if (!this.issuer) throw new Error('Invalid OpenID Auth configuration.');
-            console.log('Discovered issuer %s %O', this.issuer.issuer, this.issuer.metadata);
-            this.client = new this.issuer.Client({});
+            if (!url || !clientId || !afterNotSignInPageId) return;
+            const websiteId = wwLib.wwWebsiteData.getInfo().id;
+            const redirectTo = wwLib.manager
+                ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
+                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
+
+            const client = new UserManager({
+                authority: url,
+                client_id: clientId,
+                redirect_uri: redirectTo,
+            });
+            this.client = client;
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
-            this.issuer = null;
             this.client = null;
             wwLib.wwLog.error(err);
             /* wwEditor:start */
             wwLib.wwNotification.open({ text: 'Invalid OpenID Auth configuration.', color: 'red' });
             /* wwEditor:end */
         }
+    },
+    async fetchUser() {
+        return await this.client.getUser();
+    },
+    async login() {
+        return await this.client.signinRedirect();
+    },
+    async logout() {
+        return await this.client.signoutRedirect();
     },
 };
