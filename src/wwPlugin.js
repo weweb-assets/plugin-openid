@@ -1,6 +1,8 @@
 /* wwEditor:start */
 import './components/Configuration/SettingsEdit.vue';
 import './components/Configuration/SettingsSummary.vue';
+import './components/Redirections/SettingsEdit.vue';
+import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
 import { UserManager } from 'oidc-client';
 
