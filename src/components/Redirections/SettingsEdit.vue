@@ -64,6 +64,7 @@ export default {
             this.plugin.load(
                 this.settings.publicData.domain,
                 this.settings.publicData.clientId,
+                this.settings.publicData.scope,
                 this.settings.publicData.afterSignInPageId,
                 this.settings.publicData.afterNotSignInPageId
             );

@@ -28,6 +28,14 @@
         <wwEditorInputSwitch v-model="isKeyVisible" />
         <span class="ml-2 body-2">Show client secret</span>
     </div>
+    <wwEditorInputRow
+        label="Scopes"
+        required
+        type="query"
+        placeholder="openid, profile, name"
+        :model-value="settings.publicData.scope"
+        @update:modelValue="changeScope"
+    />
 </template>
 
 <script>
@@ -64,10 +72,18 @@ export default {
             });
             this.$nextTick(this.loadInstance);
         },
+        changeScope(scope) {
+            this.$emit('update:settings', {
+                ...this.settings,
+                publicData: { ...this.settings.publicData, scope },
+            });
+            this.$nextTick(this.loadInstance);
+        },
         loadInstance() {
             this.plugin.load(
                 this.settings.publicData.domain,
                 this.settings.publicData.clientId,
+                this.settings.publicData.scope,
                 this.settings.publicData.afterSignInPageId,
                 this.settings.publicData.afterNotSignInPageId
             );
