@@ -21,10 +21,11 @@ export default {
         );
         try {
             await this.client.signinCallback();
-            await this.fetchUser();
-        } catch (err) {
-            await this.fetchUser();
-        }
+        } catch (err) {}
+        try {
+            await this.client.signoutCallback();
+        } catch (err) {}
+        await this.fetchUser();
     },
     /*=============================================m_ÔÔ_m=============================================\
         Auth API
@@ -80,7 +81,6 @@ export default {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
         await this.client.signinPopup();
-        await this.client.signinCallback();
         return await this.fetchUser();
     },
     async loginWithRedirect() {
