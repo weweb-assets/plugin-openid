@@ -19,6 +19,7 @@ export default {
             settings.publicData.afterSignInPageId,
             settings.publicData.afterNotSignInPageId
         );
+        await this.client.signinSilentCallback();
         await this.fetchUser();
     },
     /*=============================================m_ÔÔ_m=============================================\
@@ -75,6 +76,7 @@ export default {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
         await this.client.signinPopup();
+        await this.client.signinSilentCallback();
         return await this.fetchUser();
     },
     async loginWithRedirect() {
