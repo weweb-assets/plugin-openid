@@ -34,7 +34,7 @@ export default {
         },
         {
             name: 'Login with Redirect',
-            code: 'loginWithPopup',
+            code: 'loginWithRedirect',
             isAsync: true,
         },
         {
