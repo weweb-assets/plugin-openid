@@ -7,13 +7,13 @@
         <wwEditorIcon name="key" class="mr-2" />
         <div class="text-ellipsis">{{ settings.publicData.clientId }}</div>
     </div>
-    <div class="flex items-center body-2">
+    <div class="flex items-center body-2 mb-2">
         <wwEditorIcon name="key" class="mr-2" />
         <div class="text-ellipsis">{{ (settings.privateData.clientSecret || '').replace(/./g, '*') }}</div>
     </div>
     <div class="flex items-center body-2">
         <wwEditorIcon name="key" class="mr-2" />
-        <div class="text-ellipsis">{{ settings.privateData.scope }}</div>
+        <div class="text-ellipsis">{{ settings.publicData.scope }}</div>
     </div>
 </template>
 

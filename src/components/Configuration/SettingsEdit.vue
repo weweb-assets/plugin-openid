@@ -24,7 +24,7 @@
             @update:modelValue="changeClientSecret"
         />
     </wwEditorFormRow>
-    <div class="flex items-center">
+    <div class="flex items-center mb-2">
         <wwEditorInputSwitch v-model="isKeyVisible" />
         <span class="ml-2 body-2">Show client secret</span>
     </div>
