@@ -1,11 +1,15 @@
 <template>
     <div class="flex items-center body-2 mb-2">
         <wwEditorIcon name="link" class="mr-2" />
-        <div class="text-ellipsis">{{ settings.publicData.url }}</div>
+        <div class="text-ellipsis">{{ settings.publicData.domain }}</div>
     </div>
     <div class="flex items-center body-2 mb-2">
         <wwEditorIcon name="key" class="mr-2" />
         <div class="text-ellipsis">{{ settings.publicData.clientId }}</div>
+    </div>
+    <div class="flex items-center body-2">
+        <wwEditorIcon name="key" class="mr-2" />
+        <div class="text-ellipsis">{{ (settings.privateData.clientSecret || '').replace(/./g, '*') }}</div>
     </div>
 </template>
 

@@ -1,4 +1,14 @@
 <template>
+    <wwEditorFormRow required label="Page to redirect after the user signed-in">
+        <wwEditorInputTextSelect
+            :options="pagesOptions"
+            :actions="pageActions"
+            :model-value="settings.publicData.afterSignInPageId"
+            placeholder="Select a page"
+            @update:modelValue="changePublicSettings('afterSignInPageId', $event)"
+            @action="onAction"
+        />
+    </wwEditorFormRow>
     <wwEditorFormRow required label="Page to redirect when user is not signed-in">
         <wwEditorInputTextSelect
             :options="pagesOptions"
@@ -52,8 +62,9 @@ export default {
         },
         loadInstance() {
             this.plugin.load(
-                this.settings.publicData.url,
+                this.settings.publicData.domain,
                 this.settings.publicData.clientId,
+                this.settings.publicData.afterSignInPageId,
                 this.settings.publicData.afterNotSignInPageId
             );
         },
