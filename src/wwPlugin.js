@@ -43,17 +43,10 @@ export default {
                 ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
                 : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
 
-            const logoutRedirectTo = wwLib.manager
-                ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
-                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
-
             this.client = new UserManager({
                 authority: domain,
                 client_id: clientId,
                 redirect_uri: loginRedirectTo,
-                popup_redirect_uri: loginRedirectTo,
-                post_logout_redirect_uri: logoutRedirectTo,
-                popup_post_logout_redirect_uri: logoutRedirectTo,
                 scope: scope || 'openid',
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
@@ -87,7 +80,15 @@ export default {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
         await this.client.signinPopup();
-        return await this.fetchUser();
+        const user = await this.fetchUser();
+        /* wwFront:start */
+        const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterSignInPageId);
+        wwLib.goTo(pagePath);
+        /* wwFront:end */
+        /* wwEditor:start */
+        wwLib.goTo(this.settings.publicData.afterSignInPageId);
+        /* wwEditor:end */
+        return user;
     },
     async loginWithRedirect() {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
@@ -97,14 +98,25 @@ export default {
     async logoutWithPopup() {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
-        await this.client.signoutPopup();
+        try {
+            await this.client.signoutPopup();
+        } catch {}
 
         wwLib.wwVariable.updateValue(`${this.id}-user`, null);
         wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
+
+        /* wwFront:start */
+        const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId);
+        wwLib.goTo(pagePath);
+        /* wwFront:end */
+        /* wwEditor:start */
+        wwLib.goTo(this.settings.publicData.afterNotSignInPageId);
+        /* wwEditor:end */
     },
     async logoutWithRedirect() {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
-
-        return await this.client.signoutRedirect();
+        try {
+            await this.client.signoutRedirect();
+        } catch {}
     },
 };
