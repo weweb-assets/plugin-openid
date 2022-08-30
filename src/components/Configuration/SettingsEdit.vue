@@ -29,12 +29,20 @@
         <span class="ml-2 body-2">Show client secret</span>
     </div>
     <wwEditorInputRow
-        label="Scopes"
+        label="Scope"
         required
         type="query"
-        placeholder="openid, profile, name"
+        placeholder="openid"
         :model-value="settings.publicData.scope"
         @update:modelValue="changeScope"
+    />
+    <wwEditorInputRow
+        label="Response type"
+        required
+        type="query"
+        placeholder="id_token"
+        :model-value="settings.publicData.responseType"
+        @update:modelValue="changeResponseType"
     />
 </template>
 
@@ -79,11 +87,19 @@ export default {
             });
             this.$nextTick(this.loadInstance);
         },
+        changeResponseType(responseType) {
+            this.$emit('update:settings', {
+                ...this.settings,
+                publicData: { ...this.settings.publicData, responseType },
+            });
+            this.$nextTick(this.loadInstance);
+        },
         loadInstance() {
             this.plugin.load(
                 this.settings.publicData.domain,
                 this.settings.publicData.clientId,
                 this.settings.publicData.scope,
+                this.settings.publicData.responseType,
                 this.settings.publicData.afterSignInPageId,
                 this.settings.publicData.afterNotSignInPageId
             );

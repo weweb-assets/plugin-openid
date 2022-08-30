@@ -16,6 +16,7 @@ export default {
             settings.publicData.domain,
             settings.publicData.clientId,
             settings.publicData.scope,
+            settings.publicData.responseType,
             settings.publicData.afterSignInPageId,
             settings.publicData.afterNotSignInPageId
         );
@@ -33,7 +34,7 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(domain, clientId, scope = 'openid', afterSignInPageId, afterNotSignInPageId) {
+    async load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
         try {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
@@ -50,8 +51,13 @@ export default {
                 authority: domain,
                 client_id: clientId,
                 redirect_uri: loginRedirectTo,
+                popup_redirect_uri: loginRedirectTo,
                 post_logout_redirect_uri: logoutRedirectTo,
-                scope,
+                popup_post_logout_redirect_uri: logoutRedirectTo,
+                scope: scope || 'openid',
+                response_type: responseType || 'id_token',
+                loadUserInfo: true,
+                automaticSilentRenew: true,
             });
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
