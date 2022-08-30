@@ -118,5 +118,16 @@ export default {
         try {
             await this.client.signoutRedirect();
         } catch {}
+
+        wwLib.wwVariable.updateValue(`${this.id}-user`, null);
+        wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
+
+        /* wwFront:start */
+        const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId);
+        wwLib.goTo(pagePath);
+        /* wwFront:end */
+        /* wwEditor:start */
+        wwLib.goTo(this.settings.publicData.afterNotSignInPageId);
+        /* wwEditor:end */
     },
 };
