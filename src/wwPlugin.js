@@ -17,8 +17,7 @@ export default {
             settings.publicData.clientId,
             settings.publicData.scope,
             settings.publicData.responseType,
-            settings.publicData.afterSignInPageId,
-            settings.publicData.afterNotSignInPageId
+            settings.publicData.afterSignInPageId
         );
         try {
             await this.client.signinCallback();
@@ -34,7 +33,7 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
+    async load(domain, clientId, scope, responseType, afterSignInPageId) {
         try {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
@@ -106,8 +105,7 @@ export default {
         wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
 
         /* wwFront:start */
-        const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId);
-        wwLib.goTo(pagePath);
+        wwLib.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
         /* wwFront:end */
         /* wwEditor:start */
         wwLib.goTo(this.settings.publicData.afterNotSignInPageId);
@@ -123,8 +121,7 @@ export default {
         wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
 
         /* wwFront:start */
-        const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId);
-        wwLib.goTo(pagePath);
+        wwLib.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
         /* wwFront:end */
         /* wwEditor:start */
         wwLib.goTo(this.settings.publicData.afterNotSignInPageId);

@@ -100,8 +100,7 @@ export default {
                 this.settings.publicData.clientId,
                 this.settings.publicData.scope,
                 this.settings.publicData.responseType,
-                this.settings.publicData.afterSignInPageId,
-                this.settings.publicData.afterNotSignInPageId
+                this.settings.publicData.afterSignInPageId
             );
         },
     },
