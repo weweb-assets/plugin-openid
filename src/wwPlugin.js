@@ -5,6 +5,7 @@ import './components/Redirections/SettingsEdit.vue';
 import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
 import { UserManager, WebStorageStateStore } from 'oidc-client';
+import { CookieStorage } from 'cookie-storage';
 
 export default {
     client: null,
@@ -50,7 +51,7 @@ export default {
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
                 automaticSilentRenew: true,
-                userStore: new WebStorageStateStore({ store: window.cookieStore }),
+                userStore: new WebStorageStateStore({ store: new CookieStorage() }),
             });
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
