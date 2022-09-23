@@ -51,7 +51,7 @@ export default {
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
                 automaticSilentRenew: true,
-                userStore: new WebStorageStateStore({ store: new CookieStorage() }),
+                userStore: new WebStorageStateStore({ store: new CookieStorage({ path: '/', secure: true }) }),
             });
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
@@ -66,6 +66,7 @@ export default {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
         try {
+            await this.client.storeUser(await this.client.signinSilent());
             const user = await this.client.getUser();
             if (!user) throw new Error('No user authenticated.');
             wwLib.wwVariable.updateValue(`${this.id}-user`, user);
