@@ -50,6 +50,7 @@ export default {
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
                 automaticSilentRenew: true,
+                userStore: window.cookieStore,
             });
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
