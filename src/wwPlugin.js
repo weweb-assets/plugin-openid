@@ -66,7 +66,6 @@ export default {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
 
         try {
-            await this.client.storeUser(await this.client.signinSilent());
             const user = await this.client.getUser();
             if (!user) throw new Error('No user authenticated.');
             wwLib.wwVariable.updateValue(`${this.id}-user`, user);
