@@ -4,7 +4,7 @@ import './components/Configuration/SettingsSummary.vue';
 import './components/Redirections/SettingsEdit.vue';
 import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
-import { UserManager, WebStorageStateStore } from 'oidc-client';
+import { UserManager, WebStorageStateStore, Log } from 'oidc-client';
 import { CookieStorage } from 'cookie-storage';
 
 export default {
@@ -20,6 +20,7 @@ export default {
             settings.publicData.responseType,
             settings.publicData.afterSignInPageId
         );
+        Log.logger = console;
         try {
             await this.client.signinCallback();
         } catch (err) {}
