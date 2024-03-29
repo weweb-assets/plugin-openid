@@ -18,7 +18,8 @@ export default {
             settings.publicData.clientId,
             settings.publicData.scope,
             settings.publicData.responseType,
-            settings.publicData.afterSignInPageId
+            settings.publicData.afterSignInPageId,
+            settings.publicData.afterNotSignInPageId
         );
         try {
             await this.client.signinCallback();
@@ -34,7 +35,7 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(domain, clientId, scope, responseType, afterSignInPageId) {
+    async load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
         try {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
@@ -42,11 +43,15 @@ export default {
             const loginRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
                 : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
+            const logoutRedirectTo = wwLib.manager
+                ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
+                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
 
             this.client = new UserManager({
                 authority: domain,
                 client_id: clientId,
                 redirect_uri: loginRedirectTo,
+                post_logout_redirect_uri: logoutRedirectTo,
                 scope: scope || 'openid',
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
