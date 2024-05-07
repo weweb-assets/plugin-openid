@@ -5,7 +5,7 @@ import './components/Redirections/SettingsEdit.vue';
 import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
 import { UserManager, WebStorageStateStore } from 'oidc-client';
-import { CookieStorage } from 'cookie-storage';
+import Cookies from 'js-cookie';
 
 export default {
     client: null,
