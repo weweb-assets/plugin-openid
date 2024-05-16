@@ -5,7 +5,7 @@ import './components/Redirections/SettingsEdit.vue';
 import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
 import { UserManager, WebStorageStateStore } from 'oidc-client';
-import { CookieStorage } from 'cookie-storage';
+import Cookies from 'js-cookie';
 
 export default {
     client: null,
@@ -56,7 +56,50 @@ export default {
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
                 automaticSilentRenew: true,
-                userStore: new WebStorageStateStore({ store: new CookieStorage({ path: '/', secure: true }) }),
+                userStore: new WebStorageStateStore({
+                    store: {
+                        getItem: key => {
+                            const cookie = Cookies.get(key);
+                            if (cookie) return cookie;
+
+                            if (!cookie) {
+                                const cookieAccessToken = Cookies.get(key + '.access_token');
+                                if (!cookieAccessToken) return null;
+
+                                const cookieIdToken = Cookies.get(key + '.id_token');
+                                const cookieRefreshToken = Cookies.get(key + '.refresh_token');
+                                const cookieUserData = Cookies.get(key + '.user_data');
+
+                                return JSON.stringify({
+                                    access_token: cookieAccessToken === 'null' ? null : cookieAccessToken,
+                                    id_token: cookieIdToken === 'null' ? null : cookieIdToken,
+                                    refresh_token: cookieRefreshToken === 'null' ? null : cookieRefreshToken,
+                                    ...JSON.parse(cookieUserData),
+                                });
+                            }
+
+                            return null;
+                        },
+                        setItem: (key, value) => {
+                            if (value.length < 4096) {
+                                Cookies.set(key, value, { secure: true, path: '/' });
+                            } else {
+                                const { access_token, id_token, refresh_token, ...rest } = JSON.parse(value);
+                                Cookies.set(key + '.access_token', access_token || null, { secure: true, path: '/' });
+                                Cookies.set(key + '.id_token', id_token || null, { secure: true, path: '/' });
+                                Cookies.set(key + '.refresh_token', refresh_token || null, { secure: true, path: '/' });
+                                Cookies.set(key + '.user_data', JSON.stringify(rest), { secure: true, path: '/' });
+                            }
+                        },
+                        removeItem: key => {
+                            Cookies.remove(key);
+                            Cookies.remove(key + '.access_token');
+                            Cookies.remove(key + '.id_token');
+                            Cookies.remove(key + '.refresh_token');
+                            Cookies.remove(key + '.user_data');
+                        },
+                    },
+                }),
             });
             if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         } catch (err) {
