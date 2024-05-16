@@ -81,7 +81,7 @@ export default {
                             return null;
                         },
                         setItem: (key, value) => {
-                            if (value.length < 4096) {
+                            if (value.length < 3000) {
                                 Cookies.set(key, value, { secure: true, path: '/' });
                             } else {
                                 const { access_token, id_token, refresh_token, ...rest } = JSON.parse(value);
