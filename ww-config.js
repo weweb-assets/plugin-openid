@@ -1,4 +1,7 @@
 export default {
+    features: {
+        auth: true,
+    },
     editor: {
         settings: [
             {
@@ -10,22 +13,8 @@ export default {
                     return !!settings.publicData.domain && !!settings.publicData.clientId;
                 },
             },
-            {
-                label: 'Define redirections (URLs)',
-                icon: 'open-out',
-                edit: () => import('./src/components/Redirections/SettingsEdit.vue'),
-                summary: () => import('./src/components/Redirections/SettingsSummary.vue'),
-                getIsValid(settings) {
-                    const { afterSignInPageId, afterNotSignInPageId } = settings.publicData;
-                    return !!afterSignInPageId && !!afterNotSignInPageId;
-                },
-            },
         ],
     },
-    variables: [
-        { name: 'user', value: 'user', type: 'object', defaultValue: null },
-        { name: 'isAuthenticated', value: 'isAuthenticated', type: 'boolean', defaultValue: false },
-    ],
     actions: [
         {
             name: 'Login with Popup',
