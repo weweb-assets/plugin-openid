@@ -15,6 +15,10 @@ export default {
             },
         ],
     },
+    variables: [
+        { name: 'user', value: 'user', type: 'object', defaultValue: null },
+        { name: 'isAuthenticated', value: 'isAuthenticated', type: 'boolean', defaultValue: false },
+    ],
     actions: [
         {
             name: 'Login with Popup',
