@@ -1,8 +1,6 @@
 /* wwEditor:start */
 import './components/Configuration/SettingsEdit.vue';
 import './components/Configuration/SettingsSummary.vue';
-import './components/Redirections/SettingsEdit.vue';
-import './components/Redirections/SettingsSummary.vue';
 /* wwEditor:end */
 import { UserManager, WebStorageStateStore } from 'oidc-client';
 import Cookies from 'js-cookie';
@@ -12,7 +10,7 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
-    async onLoad(settings) {
+    async _onLoad(settings) {
         await this.load(
             settings.publicData.domain,
             settings.publicData.clientId,
@@ -21,6 +19,8 @@ export default {
             settings.publicData.afterSignInPageId,
             settings.publicData.afterNotSignInPageId
         );
+    },
+    async _initAuth() {
         try {
             await this.client.signinCallback();
         } catch (err) {}
