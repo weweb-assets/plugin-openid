@@ -10,15 +10,17 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
-    async _initAuth() {
-        this.load(
-            this.settings.publicData.domain,
-            this.settings.publicData.clientId,
-            this.settings.publicData.scope,
-            this.settings.publicData.responseType,
-            this.settings.publicData.afterSignInPageId,
-            this.settings.publicData.afterNotSignInPageId
+    async _onLoad(settings) {
+        await this.load(
+            settings.publicData.domain,
+            settings.publicData.clientId,
+            settings.publicData.scope,
+            settings.publicData.responseType,
+            settings.publicData.afterSignInPageId,
+            settings.publicData.afterNotSignInPageId
         );
+    },
+    async _initAuth() {
         try {
             await this.client.signinCallback();
         } catch (err) {}
@@ -33,17 +35,17 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
+    async load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
         try {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
-
+            const defaultLang = wwLib.wwWebsiteData.getInfo().langs.find(lang => lang.default);
             const loginRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
-                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
+                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterSignInPageId, defaultLang.lang)}`;
             const logoutRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
-                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
+                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId, defaultLang.lang)}`;
 
             this.client = new UserManager({
                 authority: domain,
