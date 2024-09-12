@@ -45,5 +45,13 @@ export default {
             code: 'fetchUser',
             isAsync: true,
         },
+        {
+            name: 'Update Tokens',
+            code: 'updateTokens',
+            isAsync: true,
+            /* wwEditor:start */
+            edit: () => import('./src/components/Actions/UpdateTokens.vue'),
+            /* wwEditor:end */
+        },
     ],
 };

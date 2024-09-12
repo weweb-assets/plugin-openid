@@ -44,6 +44,12 @@
         :model-value="settings.publicData.responseType"
         @update:modelValue="changeResponseType"
     />
+    <wwEditorInputRow
+        label="Disable automatic refresh token"
+        type="onoff"
+        :model-value="settings.publicData.disableAutoRefresh"
+        @update:modelValue="changeDisableAutoRefresh"
+    />
 </template>
 
 <script>
@@ -94,12 +100,20 @@ export default {
             });
             this.$nextTick(this.loadInstance);
         },
+        changeDisableAutoRefresh(disableAutoRefresh) {
+            this.$emit('update:settings', {
+                ...this.settings,
+                publicData: { ...this.settings.publicData, disableAutoRefresh },
+            });
+            this.$nextTick(this.loadInstance);
+        },
         loadInstance() {
             this.plugin.load(
                 this.settings.publicData.domain,
                 this.settings.publicData.clientId,
                 this.settings.publicData.scope,
                 this.settings.publicData.responseType,
+                this.settings.publicData.disableAutoRefresh,
                 this.settings.publicData.afterSignInPageId
             );
         },
