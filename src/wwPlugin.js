@@ -17,6 +17,7 @@ export default {
             settings.publicData.clientId,
             settings.publicData.scope,
             settings.publicData.responseType,
+            settings.publicData.disableAutoRefresh,
             settings.publicData.afterSignInPageId,
             settings.publicData.afterNotSignInPageId
         );

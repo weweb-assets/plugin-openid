@@ -114,7 +114,8 @@ export default {
                 this.settings.publicData.scope,
                 this.settings.publicData.responseType,
                 this.settings.publicData.disableAutoRefresh,
-                this.settings.publicData.afterSignInPageId
+                this.settings.publicData.afterSignInPageId,
+                this.settings.publicData.afterNotSignInPageId
             );
         },
     },
