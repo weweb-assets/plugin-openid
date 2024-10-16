@@ -1,6 +1,7 @@
 /* wwEditor:start */
 import './components/Configuration/SettingsEdit.vue';
 import './components/Configuration/SettingsSummary.vue';
+import './components/Actions/UpdateTokens.vue';
 /* wwEditor:end */
 import { UserManager, WebStorageStateStore } from 'oidc-client';
 import Cookies from 'js-cookie';
@@ -16,6 +17,7 @@ export default {
             settings.publicData.clientId,
             settings.publicData.scope,
             settings.publicData.responseType,
+            settings.publicData.disableAutoRefresh,
             settings.publicData.afterSignInPageId,
             settings.publicData.afterNotSignInPageId
         );
@@ -35,7 +37,7 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(domain, clientId, scope, responseType, afterSignInPageId, afterNotSignInPageId) {
+    async load(domain, clientId, scope, responseType, disableAutoRefresh, afterSignInPageId, afterNotSignInPageId) {
         try {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
@@ -55,7 +57,7 @@ export default {
                 scope: scope || 'openid',
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
-                automaticSilentRenew: true,
+                automaticSilentRenew: !disableAutoRefresh,
                 userStore: new WebStorageStateStore({
                     store: {
                         getItem: key => {
@@ -90,6 +92,7 @@ export default {
                                 Cookies.set(key + '.refresh_token', refresh_token || null, { secure: true, path: '/' });
                                 Cookies.set(key + '.user_data', JSON.stringify(rest), { secure: true, path: '/' });
                             }
+                            this.fetchUser();
                         },
                         removeItem: key => {
                             Cookies.remove(key);
@@ -132,10 +135,10 @@ export default {
         const user = await this.fetchUser();
         /* wwFront:start */
         const pagePath = wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterSignInPageId);
-        wwLib.goTo(pagePath);
+        wwLib.wwApp.goTo(pagePath);
         /* wwFront:end */
         /* wwEditor:start */
-        wwLib.goTo(this.settings.publicData.afterSignInPageId);
+        wwLib.wwApp.goTo(this.settings.publicData.afterSignInPageId);
         /* wwEditor:end */
         return user;
     },
@@ -149,32 +152,44 @@ export default {
 
         try {
             await this.client.signoutPopup();
-        } catch {}
+        } catch (err) {
+            wwLib.wwLog.error(err);
+        }
 
         wwLib.wwVariable.updateValue(`${this.id}-user`, null);
         wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
 
         /* wwFront:start */
-        wwLib.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
+        wwLib.wwApp.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
         /* wwFront:end */
         /* wwEditor:start */
-        wwLib.goTo(this.settings.publicData.afterNotSignInPageId);
+        wwLib.wwApp.goTo(this.settings.publicData.afterNotSignInPageId);
         /* wwEditor:end */
     },
     async logoutWithRedirect() {
         if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
         try {
             await this.client.signoutRedirect();
-        } catch {}
+        } catch (err) {
+            wwLib.wwLog.error(err);
+            wwLib.wwVariable.updateValue(`${this.id}-user`, null);
+            wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
 
-        wwLib.wwVariable.updateValue(`${this.id}-user`, null);
-        wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, false);
-
-        /* wwFront:start */
-        wwLib.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
-        /* wwFront:end */
-        /* wwEditor:start */
-        wwLib.goTo(this.settings.publicData.afterNotSignInPageId);
-        /* wwEditor:end */
+            /* wwFront:start */
+            wwLib.wwApp.goTo(wwLib.wwPageHelper.getPagePath(this.settings.publicData.afterNotSignInPageId));
+            /* wwFront:end */
+            /* wwEditor:start */
+            wwLib.wwApp.goTo(this.settings.publicData.afterNotSignInPageId);
+            /* wwEditor:end */
+        }
+    },
+    updateTokens({ accessToken, idToken, refreshToken }) {
+        if (!this.client) throw new Error('Invalid OpenID Auth configuration.');
+        const key = this.client._userStore._prefix + this.client._userStoreKey;
+        const cookie = JSON.parse(this.client._userStore._store.getItem(key) || '{}');
+        if (idToken) cookie.id_token = idToken;
+        if (accessToken) cookie.access_token = accessToken;
+        if (refreshToken) cookie.refresh_token = refreshToken;
+        this.client._userStore._store.setItem(key, JSON.stringify(cookie));
     },
 };
