@@ -42,12 +42,14 @@ export default {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
 
+            const base = wwLib.useBaseTag() ? wwLib.getBaseTag().replace('/', '') : '';
+
             const loginRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
-                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
+                : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
             const logoutRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
-                : `${window.location.origin}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
+                : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
 
             this.client = new UserManager({
                 authority: domain,
