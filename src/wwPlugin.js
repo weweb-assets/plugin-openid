@@ -42,7 +42,7 @@ export default {
             if (!domain || !clientId) return;
             const websiteId = wwLib.wwWebsiteData.getInfo().id;
 
-            const base = wwLib.useBaseTag() ? wwLib.getBaseTag().replace('/', '') : '';
+            const base = wwLib.useBaseTag() ? wwLib.getBaseTag().slice(0, -1) : '';
 
             const loginRedirectTo = wwLib.manager
                 ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
