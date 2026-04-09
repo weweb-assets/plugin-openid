@@ -40,15 +40,13 @@ export default {
     async load(domain, clientId, scope, responseType, disableAutoRefresh, afterSignInPageId, afterNotSignInPageId) {
         try {
             if (!domain || !clientId) return;
-            const websiteId = wwLib.wwWebsiteData.getInfo().id;
-
             const base = wwLib.useBaseTag() ? wwLib.getBaseTag().slice(0, -1) : '';
 
             const loginRedirectTo = wwLib.manager
-                ? `${window.location.origin}/${websiteId}/${afterSignInPageId}`
+                ? `${window.location.origin}/${afterSignInPageId}`
                 : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterSignInPageId)}`;
             const logoutRedirectTo = wwLib.manager
-                ? `${window.location.origin}/${websiteId}/${afterNotSignInPageId}`
+                ? `${window.location.origin}/${afterNotSignInPageId}`
                 : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
 
             this.client = new UserManager({
