@@ -3,11 +3,18 @@ import './components/Configuration/SettingsEdit.vue';
 import './components/Configuration/SettingsSummary.vue';
 import './components/Actions/UpdateTokens.vue';
 /* wwEditor:end */
-import { UserManager, WebStorageStateStore } from 'oidc-client';
+import { UserManager, WebStorageStateStore, InMemoryWebStorage } from 'oidc-client';
 import Cookies from 'js-cookie';
+
+function removeUserCookies(key) {
+    for (const suffix of ['', '.access_token', '.id_token', '.refresh_token', '.user_data']) {
+        Cookies.remove(key + suffix, { path: '/' });
+    }
+}
 
 export default {
     client: null,
+    _loadGeneration: 0,
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
@@ -19,7 +26,8 @@ export default {
             settings.publicData.responseType,
             settings.publicData.disableAutoRefresh,
             settings.publicData.afterSignInPageId,
-            settings.publicData.afterNotSignInPageId
+            settings.publicData.afterNotSignInPageId,
+            settings.publicData.tokenStorage
         );
     },
     async _initAuth() {
@@ -37,9 +45,22 @@ export default {
     /*=============================================m_ÔÔ_m=============================================\
         OpenID API
     \================================================================================================*/
-    async load(domain, clientId, scope, responseType, disableAutoRefresh, afterSignInPageId, afterNotSignInPageId) {
+    async load(
+        domain,
+        clientId,
+        scope,
+        responseType,
+        disableAutoRefresh,
+        afterSignInPageId,
+        afterNotSignInPageId,
+        tokenStorage
+    ) {
         try {
+            this.client?.stopSilentRenew();
+            const generation = ++this._loadGeneration;
             if (!domain || !clientId) return;
+            const memory = tokenStorage === 'memory' ? new InMemoryWebStorage() : null;
+            if (memory) removeUserCookies(`oidc.user:${domain}:${clientId}`);
             const base = wwLib.useBaseTag() ? wwLib.getBaseTag().slice(0, -1) : '';
 
             const loginRedirectTo = wwLib.manager
@@ -61,6 +82,8 @@ export default {
                 userStore: new WebStorageStateStore({
                     store: {
                         getItem: key => {
+                            if (generation !== this._loadGeneration) return null;
+                            if (memory) return memory.getItem(key);
                             const cookie = Cookies.get(key);
                             if (cookie) return cookie;
 
@@ -83,7 +106,10 @@ export default {
                             return null;
                         },
                         setItem: (key, value) => {
-                            if (value.length < 3000) {
+                            if (generation !== this._loadGeneration) return;
+                            if (memory) {
+                                memory.setItem(key, value);
+                            } else if (value.length < 3000) {
                                 Cookies.set(key, value, { secure: true, path: '/' });
                             } else {
                                 const { access_token, id_token, refresh_token, ...rest } = JSON.parse(value);
@@ -95,11 +121,9 @@ export default {
                             this.fetchUser();
                         },
                         removeItem: key => {
-                            Cookies.remove(key);
-                            Cookies.remove(key + '.access_token');
-                            Cookies.remove(key + '.id_token');
-                            Cookies.remove(key + '.refresh_token');
-                            Cookies.remove(key + '.user_data');
+                            if (generation !== this._loadGeneration) return;
+                            if (memory) return memory.removeItem(key);
+                            removeUserCookies(key);
                         },
                     },
                 }),
