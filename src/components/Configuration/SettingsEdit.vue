@@ -45,6 +45,20 @@
         @update:modelValue="changeResponseType"
     />
     <wwEditorInputRow
+        label="Browser token storage"
+        type="select"
+        :model-value="settings.publicData.tokenStorage || 'cookies'"
+        :options="[
+            { label: 'Cookies (default)', value: 'cookies' },
+            { label: 'Memory', value: 'memory' },
+        ]"
+        @update:modelValue="changeTokenStorage"
+    />
+    <p v-if="settings.publicData.tokenStorage === 'memory'" class="body-sm content-secondary mb-2">
+        Tokens are cleared on reload and are not shared with other tabs. Users may need to sign in again. Existing token
+        cookies are removed. Memory storage does not prevent XSS attacks.
+    </p>
+    <wwEditorInputRow
         label="Disable automatic refresh token"
         type="onoff"
         :model-value="settings.publicData.disableAutoRefresh"
@@ -65,6 +79,13 @@ export default {
         };
     },
     methods: {
+        changeTokenStorage(tokenStorage) {
+            this.$emit('update:settings', {
+                ...this.settings,
+                publicData: { ...this.settings.publicData, tokenStorage },
+            });
+            this.$nextTick(this.loadInstance);
+        },
         changeDomain(domain) {
             this.$emit('update:settings', {
                 ...this.settings,
@@ -115,7 +136,8 @@ export default {
                 this.settings.publicData.responseType,
                 this.settings.publicData.disableAutoRefresh,
                 this.settings.publicData.afterSignInPageId,
-                this.settings.publicData.afterNotSignInPageId
+                this.settings.publicData.afterNotSignInPageId,
+                this.settings.publicData.tokenStorage
             );
         },
     },
