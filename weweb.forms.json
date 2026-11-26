@@ -1,0 +1,164 @@
+{
+    "schemaVersion": 1,
+    "features": {
+        "auth": true
+    },
+    "settings": {
+        "fields": [
+            {
+                "key": "domain",
+                "label": "Domain",
+                "type": "text",
+                "storage": "publicData",
+                "required": true,
+                "placeholder": "https://…"
+            },
+            {
+                "key": "clientId",
+                "label": "Client ID",
+                "type": "text",
+                "storage": "publicData",
+                "required": true
+            },
+            {
+                "key": "clientSecret",
+                "label": "Client secret",
+                "type": "secret",
+                "storage": "privateData"
+            },
+            {
+                "key": "scope",
+                "label": "Scope",
+                "type": "text",
+                "storage": "publicData",
+                "placeholder": "openid"
+            },
+            {
+                "key": "responseType",
+                "label": "Response type",
+                "type": "text",
+                "storage": "publicData",
+                "placeholder": "id_token"
+            },
+            {
+                "key": "tokenStorage",
+                "label": "Browser token storage",
+                "type": "choice",
+                "storage": "publicData",
+                "initial": "cookies",
+                "choices": [
+                    {
+                        "value": "cookies",
+                        "label": "Cookies (default)"
+                    },
+                    {
+                        "value": "memory",
+                        "label": "Memory"
+                    }
+                ],
+                "help": {
+                    "text": "Memory storage clears tokens on reload and keeps them separate between tabs. Selecting it removes existing token cookies. Users may need to sign in again."
+                }
+            },
+            {
+                "key": "disableAutoRefresh",
+                "label": "Disable automatic refresh",
+                "type": "boolean",
+                "storage": "publicData"
+            }
+        ],
+        "summary": [
+            {
+                "field": "domain"
+            },
+            {
+                "field": "clientId"
+            },
+            {
+                "field": "scope",
+                "empty": "openid"
+            },
+            {
+                "field": "responseType",
+                "empty": "id_token"
+            },
+            {
+                "field": "tokenStorage",
+                "label": "Browser token storage",
+                "empty": "cookies"
+            },
+            {
+                "field": "disableAutoRefresh",
+                "label": "Automatic refresh disabled",
+                "empty": "false"
+            }
+        ]
+    },
+    "variables": [
+        {
+            "name": "user",
+            "type": "object"
+        },
+        {
+            "name": "isAuthenticated",
+            "type": "boolean"
+        }
+    ],
+    "actions": [
+        {
+            "name": "Login with Popup",
+            "code": "loginWithPopup",
+            "isAsync": true
+        },
+        {
+            "name": "Login with Redirect",
+            "code": "loginWithRedirect",
+            "isAsync": true
+        },
+        {
+            "name": "Logout with Popup",
+            "code": "logoutWithPopup",
+            "isAsync": true
+        },
+        {
+            "name": "Logout with Redirect",
+            "code": "logoutWithRedirect",
+            "isAsync": true
+        },
+        {
+            "name": "Fetch User",
+            "code": "fetchUser",
+            "isAsync": true
+        },
+        {
+            "name": "Update Tokens",
+            "code": "updateTokens",
+            "isAsync": true,
+            "form": {
+                "fields": [
+                    {
+                        "key": "idToken",
+                        "label": "ID token",
+                        "type": "text",
+                        "bindable": true,
+                        "placeholder": "Enter a token"
+                    },
+                    {
+                        "key": "accessToken",
+                        "label": "Access token",
+                        "type": "text",
+                        "bindable": true,
+                        "placeholder": "Enter a token"
+                    },
+                    {
+                        "key": "refreshToken",
+                        "label": "Refresh token",
+                        "type": "text",
+                        "bindable": true,
+                        "placeholder": "Enter a token"
+                    }
+                ]
+            }
+        }
+    ]
+}
