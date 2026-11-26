@@ -58,11 +58,15 @@ export default {
         );
     },
     async _initAuth() {
+        let response;
+        /* wwEditor:start */
+        response = wwLib.editor?.takePreviewAuthResponse?.();
+        /* wwEditor:end */
         try {
-            await this.client.signinCallback();
+            await this.client.signinCallback(response);
         } catch (err) {}
         try {
-            await this.client.signoutCallback();
+            await this.client.signoutCallback(response);
         } catch (err) {}
         await this.fetchUser();
     },
