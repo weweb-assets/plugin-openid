@@ -15,14 +15,15 @@ const clientId = 'test-client';
 const key = `oidc.user:${domain}:${clientId}`;
 const suffixes = ['', '.access_token', '.id_token', '.refresh_token', '.user_data'];
 
-async function setup(tokenStorage, initialCookies = {}) {
+async function setup(tokenStorage, initialCookies = {}, previewSession) {
     const cookies = new Map(Object.entries(initialCookies));
     const writes = [];
     const variables = new Map();
     const transactionStorage = new sdk.InMemoryWebStorage();
     const context = vm.createContext({
-        window: { location: { origin: 'https://app.example.test' } },
+        window: { location: { origin: 'https://app.example.test' }, sessionStorage: previewSession },
         wwLib: {
+            editor: { isolatedCanvas: !!previewSession },
             manager: true,
             useBaseTag: () => false,
             wwLog: {
@@ -157,4 +158,18 @@ test('applying public preview settings refreshes the client and its current user
     assert.equal(variables.get('test-plugin-isAuthenticated'), false);
     await plugin.onPreviewSettingsChanged({ ...plugin.settings.publicData, clientId: '' });
     assert.equal(plugin.client, null);
+});
+
+test('an isolated preview retains its own login across frame reloads until switching to memory', async () => {
+    const previewSession = new sdk.InMemoryWebStorage();
+    const first = await setup('cookies', {}, previewSession);
+    await first.plugin.client.storeUser(user());
+    const reloaded = await setup('cookies', {}, previewSession);
+    assert.equal((await reloaded.plugin.fetchUser()).access_token, 'test-access');
+    assert.equal(first.writes.length, 0);
+    const secondTab = await setup('cookies', {}, new sdk.InMemoryWebStorage());
+    assert.equal(await secondTab.plugin.client.getUser(), null);
+    await reloaded.plugin.onPreviewSettingsChanged({ ...reloaded.plugin.settings.publicData, tokenStorage: 'memory' });
+    assert.equal(previewSession.length, 0);
+    assert.equal(await reloaded.plugin.client.getUser(), null);
 });

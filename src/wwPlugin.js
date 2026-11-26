@@ -72,8 +72,17 @@ export default {
             this.client?.stopSilentRenew();
             const generation = ++this._loadGeneration;
             if (!domain || !clientId) return;
-            const memory = tokenStorage === 'memory' ? new InMemoryWebStorage() : null;
-            if (memory) removeUserCookies(`oidc.user:${domain}:${clientId}`);
+            let userStorage = tokenStorage === 'memory' ? new InMemoryWebStorage() : null;
+            const userKey = `oidc.user:${domain}:${clientId}`;
+            if (userStorage) removeUserCookies(userKey);
+            /* wwEditor:start */
+            // A credentialless canvas keeps the test app's session through frame
+            // reloads in this tab. Switching to memory clears only this client.
+            if (wwLib.editor?.isolatedCanvas) {
+                if (userStorage) window.sessionStorage.removeItem(userKey);
+                else userStorage = window.sessionStorage;
+            }
+            /* wwEditor:end */
             const base = wwLib.useBaseTag() ? wwLib.getBaseTag().slice(0, -1) : '';
 
             const loginRedirectTo = wwLib.manager
@@ -96,7 +105,7 @@ export default {
                     store: {
                         getItem: key => {
                             if (generation !== this._loadGeneration) return null;
-                            if (memory) return memory.getItem(key);
+                            if (userStorage) return userStorage.getItem(key);
                             const cookie = Cookies.get(key);
                             if (cookie) return cookie;
 
@@ -120,8 +129,8 @@ export default {
                         },
                         setItem: (key, value) => {
                             if (generation !== this._loadGeneration) return;
-                            if (memory) {
-                                memory.setItem(key, value);
+                            if (userStorage) {
+                                userStorage.setItem(key, value);
                             } else if (value.length < 3000) {
                                 Cookies.set(key, value, { secure: true, path: '/' });
                             } else {
@@ -135,7 +144,7 @@ export default {
                         },
                         removeItem: key => {
                             if (generation !== this._loadGeneration) return;
-                            if (memory) return memory.removeItem(key);
+                            if (userStorage) return userStorage.removeItem(key);
                             removeUserCookies(key);
                         },
                     },
