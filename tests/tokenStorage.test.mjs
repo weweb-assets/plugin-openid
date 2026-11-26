@@ -145,3 +145,16 @@ test('switching to memory prevents late writes from the previous cookie instance
     assert.equal(await plugin.client.getUser(), null);
     assert.notEqual(variables.get('test-plugin-user')?.access_token, 'late-access');
 });
+
+test('applying public preview settings refreshes the client and its current user', async () => {
+    const { plugin, cookies, variables } = await setup('cookies');
+    await plugin.client.storeUser(user());
+    await plugin.fetchUser();
+    await plugin.onPreviewSettingsChanged({ ...plugin.settings.publicData, tokenStorage: 'memory' });
+    assert.equal(cookies.size, 0);
+    assert.equal(await plugin.client.getUser(), null);
+    assert.equal(variables.get('test-plugin-user'), null);
+    assert.equal(variables.get('test-plugin-isAuthenticated'), false);
+    await plugin.onPreviewSettingsChanged({ ...plugin.settings.publicData, clientId: '' });
+    assert.equal(plugin.client, null);
+});

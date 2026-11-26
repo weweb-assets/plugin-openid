@@ -15,6 +15,19 @@ function removeUserCookies(key) {
 export default {
     client: null,
     _loadGeneration: 0,
+    /* wwEditor:start */
+    async onPreviewSettingsChanged(publicData) {
+        await this._onLoad({ publicData });
+        // A cleared issuer or client ID disconnects this preview. Old SDK
+        // callbacks already use the load generation to guard storage writes.
+        if (!publicData.domain || !publicData.clientId) this.client = null;
+        const client = this.client;
+        const user = client ? await client.getUser() : null;
+        if (this.client !== client) return;
+        wwLib.wwVariable.updateValue(`${this.id}-user`, user);
+        wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, !!user);
+    },
+    /* wwEditor:end */
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
