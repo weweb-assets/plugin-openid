@@ -108,13 +108,12 @@ export default {
 
             let previewRedirects = {};
             /* wwEditor:start */
-            const tabBase = wwLib.editor?.previewTabBase;
-            if (tabBase) {
-                const page = id => new URL(encodeURIComponent(id || wwLib.store.websiteData.page.id), tabBase).href;
-                const popup = new URL('auth-popup', tabBase).href;
+            const previewReturn = wwLib.editor?.previewAuthReturn;
+            if (previewReturn) {
+                const popup = previewReturn('popup');
                 previewRedirects = {
-                    redirect_uri: page(afterSignInPageId),
-                    post_logout_redirect_uri: page(afterNotSignInPageId),
+                    redirect_uri: previewReturn('signin', afterSignInPageId),
+                    post_logout_redirect_uri: previewReturn('signout', afterNotSignInPageId),
                     popup_redirect_uri: popup,
                     popup_post_logout_redirect_uri: popup,
                 };
