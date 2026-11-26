@@ -16,6 +16,20 @@ export default {
     client: null,
     _loadGeneration: 0,
     /* wwEditor:start */
+    // The isolated callback document loads only this installed plugin. The SDK
+    // resolves the pending popup and validates the response in the project tab.
+    async completePreviewPopup(url, publicData) {
+        const client = new UserManager({
+            authority: publicData.domain,
+            client_id: publicData.clientId,
+            response_type: publicData.responseType || 'id_token',
+        });
+        const signin = await client.readSigninResponseState(url).catch(() => null);
+        if (signin?.state.request_type === 'si:p') return client.signinPopupCallback(url);
+        const signout = await client.readSignoutResponseState(url);
+        if (signout?.state?.request_type === 'so:p') return client.signoutPopupCallback(url);
+        throw new Error('This sign-in window has no pending request.');
+    },
     async onPreviewSettingsChanged(publicData) {
         await this._onLoad({ publicData });
         // A cleared issuer or client ID disconnects this preview. Old SDK
@@ -92,11 +106,26 @@ export default {
                 ? `${window.location.origin}/${afterNotSignInPageId}`
                 : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
 
+            let previewRedirects = {};
+            /* wwEditor:start */
+            const tabBase = wwLib.editor?.previewTabBase;
+            if (tabBase) {
+                const page = id => new URL(encodeURIComponent(id || wwLib.store.websiteData.page.id), tabBase).href;
+                const popup = new URL('auth-popup', tabBase).href;
+                previewRedirects = {
+                    redirect_uri: page(afterSignInPageId),
+                    post_logout_redirect_uri: page(afterNotSignInPageId),
+                    popup_redirect_uri: popup,
+                    popup_post_logout_redirect_uri: popup,
+                };
+            }
+            /* wwEditor:end */
             this.client = new UserManager({
                 authority: domain,
                 client_id: clientId,
                 redirect_uri: loginRedirectTo,
                 post_logout_redirect_uri: logoutRedirectTo,
+                ...previewRedirects,
                 scope: scope || 'openid',
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
