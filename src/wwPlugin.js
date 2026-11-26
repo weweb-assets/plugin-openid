@@ -15,6 +15,33 @@ function removeUserCookies(key) {
 export default {
     client: null,
     _loadGeneration: 0,
+    /* wwEditor:start */
+    // The isolated callback document loads only this installed plugin. The SDK
+    // resolves the pending popup and validates the response in the project tab.
+    async completePreviewPopup(url, publicData) {
+        const client = new UserManager({
+            authority: publicData.domain,
+            client_id: publicData.clientId,
+            response_type: publicData.responseType || 'id_token',
+        });
+        const signin = await client.readSigninResponseState(url).catch(() => null);
+        if (signin?.state.request_type === 'si:p') return client.signinPopupCallback(url);
+        const signout = await client.readSignoutResponseState(url);
+        if (signout?.state?.request_type === 'so:p') return client.signoutPopupCallback(url);
+        throw new Error('This sign-in window has no pending request.');
+    },
+    async onPreviewSettingsChanged(publicData) {
+        await this._onLoad({ publicData });
+        // A cleared issuer or client ID disconnects this preview. Old SDK
+        // callbacks already use the load generation to guard storage writes.
+        if (!publicData.domain || !publicData.clientId) this.client = null;
+        const client = this.client;
+        const user = client ? await client.getUser() : null;
+        if (this.client !== client) return;
+        wwLib.wwVariable.updateValue(`${this.id}-user`, user);
+        wwLib.wwVariable.updateValue(`${this.id}-isAuthenticated`, !!user);
+    },
+    /* wwEditor:end */
     /*=============================================m_ÔÔ_m=============================================\
         Plugin API
     \================================================================================================*/
@@ -31,11 +58,15 @@ export default {
         );
     },
     async _initAuth() {
+        let response;
+        /* wwEditor:start */
+        response = wwLib.editor?.takePreviewAuthResponse?.();
+        /* wwEditor:end */
         try {
-            await this.client.signinCallback();
+            await this.client.signinCallback(response);
         } catch (err) {}
         try {
-            await this.client.signoutCallback();
+            await this.client.signoutCallback(response);
         } catch (err) {}
         await this.fetchUser();
     },
@@ -59,8 +90,17 @@ export default {
             this.client?.stopSilentRenew();
             const generation = ++this._loadGeneration;
             if (!domain || !clientId) return;
-            const memory = tokenStorage === 'memory' ? new InMemoryWebStorage() : null;
-            if (memory) removeUserCookies(`oidc.user:${domain}:${clientId}`);
+            let userStorage = tokenStorage === 'memory' ? new InMemoryWebStorage() : null;
+            const userKey = `oidc.user:${domain}:${clientId}`;
+            if (userStorage) removeUserCookies(userKey);
+            /* wwEditor:start */
+            // A credentialless canvas keeps the test app's session through frame
+            // reloads in this tab. Switching to memory clears only this client.
+            if (wwLib.editor?.isolatedCanvas) {
+                if (userStorage) window.sessionStorage.removeItem(userKey);
+                else userStorage = window.sessionStorage;
+            }
+            /* wwEditor:end */
             const base = wwLib.useBaseTag() ? wwLib.getBaseTag().slice(0, -1) : '';
 
             const loginRedirectTo = wwLib.manager
@@ -70,11 +110,25 @@ export default {
                 ? `${window.location.origin}/${afterNotSignInPageId}`
                 : `${window.location.origin}${base}${wwLib.wwPageHelper.getPagePath(afterNotSignInPageId)}`;
 
+            let previewRedirects = {};
+            /* wwEditor:start */
+            const previewReturn = wwLib.editor?.previewAuthReturn;
+            if (previewReturn) {
+                const popup = previewReturn('popup');
+                previewRedirects = {
+                    redirect_uri: previewReturn('signin', afterSignInPageId),
+                    post_logout_redirect_uri: previewReturn('signout', afterNotSignInPageId),
+                    popup_redirect_uri: popup,
+                    popup_post_logout_redirect_uri: popup,
+                };
+            }
+            /* wwEditor:end */
             this.client = new UserManager({
                 authority: domain,
                 client_id: clientId,
                 redirect_uri: loginRedirectTo,
                 post_logout_redirect_uri: logoutRedirectTo,
+                ...previewRedirects,
                 scope: scope || 'openid',
                 response_type: responseType || 'id_token',
                 loadUserInfo: true,
@@ -83,7 +137,7 @@ export default {
                     store: {
                         getItem: key => {
                             if (generation !== this._loadGeneration) return null;
-                            if (memory) return memory.getItem(key);
+                            if (userStorage) return userStorage.getItem(key);
                             const cookie = Cookies.get(key);
                             if (cookie) return cookie;
 
@@ -107,8 +161,8 @@ export default {
                         },
                         setItem: (key, value) => {
                             if (generation !== this._loadGeneration) return;
-                            if (memory) {
-                                memory.setItem(key, value);
+                            if (userStorage) {
+                                userStorage.setItem(key, value);
                             } else if (value.length < 3000) {
                                 Cookies.set(key, value, { secure: true, path: '/' });
                             } else {
@@ -122,7 +176,7 @@ export default {
                         },
                         removeItem: key => {
                             if (generation !== this._loadGeneration) return;
-                            if (memory) return memory.removeItem(key);
+                            if (userStorage) return userStorage.removeItem(key);
                             removeUserCookies(key);
                         },
                     },
